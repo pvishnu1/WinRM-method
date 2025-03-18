@@ -27,7 +27,7 @@ jobs:
           session = winrm.Session(f'http://{server}:5985/wsman', auth=(username, password), transport="ntlm")
 
           # PowerShell Command to Copy Files from Linux to Windows
-          copy_command = "Copy-Item -Path '\\\\172.16.3.79\\home\github\build.txt\\*' -Destination 'C:\\deploy' -Recurse -Force"
+          copy_command = "Copy-Item -Path '\\\\172.16.3.79\\home\\github\\build.txt\\*' -Destination 'C:\\deploy' -Recurse -Force"
 
           result = session.run_ps(copy_command)
           print(result.std_out.decode())
