@@ -32,5 +32,3 @@ jobs:
           result = session.run_ps(copy_command)
           print(result.std_out.decode())
           EOF
-		  
-		  
