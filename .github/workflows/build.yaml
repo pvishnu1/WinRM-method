@@ -1,4 +1,3 @@
-
 name: Copy Files using WinRM
 
 on:
@@ -18,14 +17,19 @@ jobs:
         run: |
           python3 <<EOF
           import winrm
+
           # Define Windows Server details
           server = "${{ secrets.WINDOWS_HOST }}"
           username = "${{ secrets.WINDOWS_USER }}"
           password = "${{ secrets.WINDOWS_PASSWORD }}"
+
           # Establish WinRM Session
           session = winrm.Session(f'http://{server}:5985/wsman', auth=(username, password), transport="ntlm")
+
           # PowerShell Command to Copy Files from Linux to Windows
+          net use Z: \\\\172.16.3.79\\github /user:github "Github@123"
           copy_command = "Copy-Item -Path '\\\\172.16.3.79\\home\\github\\build.txt\\*' -Destination 'C:\\deploy' -Recurse -Force"
+
           result = session.run_ps(copy_command)
           print(result.std_out.decode())
           EOF
