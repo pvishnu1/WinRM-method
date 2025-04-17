@@ -3,20 +3,22 @@ name: Copy Files using WinRM
 on:
   push:
     branches:
-      - main  # Adjust to your branch
+      - main
 
 jobs:
   copy-files:
-    runs-on: self-hosted  # Ensure this is a Linux self-hosted runner
+    runs-on: self-hosted
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
 
-      - name: Install dependencies
+      - name: Run Python Script to Copy and Execute PowerShell on Windows
+        env:
+          WINDOWS_HOST: ${{ secrets.WINDOWS_HOST }}
+          WINDOWS_USER: ${{ secrets.WINDOWS_USER }}
+          WINDOWS_PASSWORD: ${{ secrets.WINDOWS_PASSWORD }}
+          LOCAL_SCRIPT_PATH: write_hello.ps1
+          REMOTE_SCRIPT_PATH: C:\\deploy\\write_hello.ps1
         run: |
-          pip3 install pywinrm
-
-      - name: Run Python script to copy and execute PowerShell file
-        run: |
-          python3 /home/github/write_hello.py
+          python3 write_hello.py
