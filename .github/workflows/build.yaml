@@ -16,19 +16,42 @@ jobs:
       - name: Copy Files to Windows Server using WinRM
         run: |
           python3 <<EOF
-          import winrm
+import base64
+import winrm
 
-          # Define Windows Server details
-          server = "${{ secrets.WINDOWS_HOST }}"
-          username = "${{ secrets.WINDOWS_USER }}"
-          password = "${{ secrets.WINDOWS_PASSWORD }}"
+# --- Windows Server Details ---
+server = "${{ secrets.WINDOWS_HOST }}"
+username = "${{ secrets.WINDOWS_USER }}"
+password = "${{ secrets.WINDOWS_PASSWORD }}"
+local_script_path = "/home/github/write_hello.ps1"
+remote_script_path = "C:\\deploy\\write_hello.ps1"
 
-          # Establish WinRM Session
-          session = winrm.Session(f'http://{server}:5985/wsman', auth=(username, password), transport="ntlm")
+# --- Read and Encode PowerShell Script ---
+with open(local_script_path, "rb") as file:
+    encoded_content = base64.b64encode(file.read()).decode()
 
-          # PowerShell Command to Copy Files from Linux to Windows
-          copy_command = "Copy-Item -Path '\\\\172.16.3.79\\home\github\build.txt\\*' -Destination 'C:\\deploy' -Recurse -Force"
+# --- Start WinRM Session ---
+session = winrm.Session(f"http://{server}:5985/wsman", auth=(username, password), transport='ntlm')
 
-          result = session.run_ps(copy_command)
-          print(result.std_out.decode())
-          EOF
+# --- Step 1: Send Script to Windows ---
+powershell_create_script = f"""
+$bytes = [System.Convert]::FromBase64String("{encoded_content}")
+$path = "{remote_script_path}"
+$dir = Split-Path -Path $path
+if (!(Test-Path $dir)) {{ New-Item -Path $dir -ItemType Directory -Force | Out-Null }}
+[System.IO.File]::WriteAllBytes($path, $bytes)
+"""
+
+create_result = session.run_ps(powershell_create_script)
+print("File creation output:")
+print(create_result.std_out.decode())
+print(create_result.std_err.decode())
+
+# --- Step 2: Run the Script ---
+powershell_run_script = f'powershell.exe -ExecutionPolicy Bypass -File "{remote_script_path}"'
+run_result = session.run_cmd(powershell_run_script)
+
+print("Script execution output:")
+print(run_result.std_out.decode())
+print(run_result.std_err.decode())
+EOF
