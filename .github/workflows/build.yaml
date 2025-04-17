@@ -15,35 +15,35 @@ jobs:
 
       - name: Copy Files to Windows Server using WinRM
         run: |
-          python3 <<EOF
+          python3 -c "
 import base64
 import winrm
 
-# --- Window Server Details ---
-server = "${{ secrets.WINDOWS_HOST }}"
-username = "${{ secrets.WINDOWS_USER }}"
-password = "${{ secrets.WINDOWS_PASSWORD }}"
-local_script_path = "/home/github/write_hello.ps1"
-remote_script_path = "C:\\deploy\\write_hello.ps1"
+# --- Windows Server Details ---
+server = '${{ secrets.WINDOWS_HOST }}'
+username = '${{ secrets.WINDOWS_USER }}'
+password = '${{ secrets.WINDOWS_PASSWORD }}'
+local_script_path = '/home/github/write_hello.ps1'
+remote_script_path = 'C:\\deploy\\write_hello.ps1'
 
 # --- Read and Encode PowerShell Script ---
-with open(local_script_path, "rb") as file:
+with open(local_script_path, 'rb') as file:
     encoded_content = base64.b64encode(file.read()).decode()
 
 # --- Start WinRM Session ---
-session = winrm.Session(f"http://{server}:5985/wsman", auth=(username, password), transport='ntlm')
+session = winrm.Session(f'http://{server}:5985/wsman', auth=(username, password), transport='ntlm')
 
 # --- Step 1: Send Script to Windows ---
-powershell_create_script = f"""
+powershell_create_script = f'''
 $bytes = [System.Convert]::FromBase64String("{encoded_content}")
 $path = "{remote_script_path}"
 $dir = Split-Path -Path $path
 if (!(Test-Path $dir)) {{ New-Item -Path $dir -ItemType Directory -Force | Out-Null }}
 [System.IO.File]::WriteAllBytes($path, $bytes)
-"""
+'''
 
 create_result = session.run_ps(powershell_create_script)
-print("File creation output:")
+print('File creation output:')
 print(create_result.std_out.decode())
 print(create_result.std_err.decode())
 
@@ -51,7 +51,7 @@ print(create_result.std_err.decode())
 powershell_run_script = f'powershell.exe -ExecutionPolicy Bypass -File "{remote_script_path}"'
 run_result = session.run_cmd(powershell_run_script)
 
-print("Script execution output:")
+print('Script execution output:')
 print(run_result.std_out.decode())
 print(run_result.std_err.decode())
-EOF
+"
