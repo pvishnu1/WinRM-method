@@ -1,4 +1,4 @@
-name: Copy Files using WinRM
+name: Copy Files from Linux to Windows using PowerShell
 
 on:
   push:
@@ -7,48 +7,65 @@ on:
 
 jobs:
   copy-files:
-    runs-on: self-hosted  # Ensure this is a Linux self-hosted runner
+    runs-on: self-hosted  # This specifies the job to run on your self-hosted Linux runner
 
     steps:
+      # Step 1: Checkout the repository to access files
       - name: Checkout Repository
         uses: actions/checkout@v2
 
-      - name: Copy PowerShell Script to Windows Server using WinRM
+      # Step 2: Install required dependencies
+      - name: Install dependencies
         run: |
-          # Define Windows Server details
-          server="${{ secrets.WINDOWS_HOST }}"
-          username="${{ secrets.WINDOWS_USER }}"
-          password="${{ secrets.WINDOWS_PASSWORD }}"
-          local_script_path="/home/github/write_hello.ps1"
-          remote_script_path="C:\\deploy\\write_hello.ps1"
+          sudo apt-get update
+          sudo apt-get install -y python3-pip
+          pip3 install pywinrm
 
-          # Start the WinRM session and upload the PowerShell script
-          python3 -c "
+      # Step 3: Write Python script to file
+      - name: Write Python script to file
+        run: |
+          cat <<EOF > /home/github/write_hello.py
+import base64
 import winrm
 
-# Read the PowerShell script as text
-with open('${local_script_path}', 'r') as file:
-    script_content = file.read()
+# Define Windows Server details
+server = "${{ secrets.WINDOWS_HOST }}"
+username = "${{ secrets.WINDOWS_USER }}"
+password = "${{ secrets.WINDOWS_PASSWORD }}"
+local_script_path = "/home/github/write_hello.ps1"
+remote_script_path = "C:\\deploy\\write_hello.ps1"
 
-# Start WinRM session
-session = winrm.Session(f'http://{server}:5985/wsman', auth=('${username}', '${password}'), transport='ntlm')
+# --- Read and Encode PowerShell Script ---
+with open(local_script_path, "rb") as file:
+    encoded_content = base64.b64encode(file.read()).decode()
 
-# Step 1: Send the PowerShell script to the Windows server (no base64)
-powershell_create_script = f'''
-Set-Content -Path \"{remote_script_path}\" -Value \"{script_content.replace('\"', '\"\"')}\"
-'''
+# --- Start WinRM Session ---
+session = winrm.Session(f"http://{server}:5985/wsman", auth=(username, password), transport="ntlm")
 
-# Run the PowerShell command to create the script on Windows
+# --- Step 1: Send Script to Windows ---
+powershell_create_script = f"""
+$bytes = [System.Convert]::FromBase64String("{encoded_content}")
+$path = "{remote_script_path}"
+$dir = Split-Path -Path $path
+if (!(Test-Path $dir)) {{ New-Item -Path $dir -ItemType Directory -Force | Out-Null }}
+[System.IO.File]::WriteAllBytes($path, $bytes)
+"""
+
 create_result = session.run_ps(powershell_create_script)
-print('File creation output:')
+print("File creation output:")
 print(create_result.std_out.decode())
 print(create_result.std_err.decode())
 
-# Step 2: Run the PowerShell script on Windows
-powershell_run_script = f'powershell.exe -ExecutionPolicy Bypass -File \"{remote_script_path}\"'
+# --- Step 2: Run the Script ---
+powershell_run_script = f'powershell.exe -ExecutionPolicy Bypass -File "{remote_script_path}"'
 run_result = session.run_cmd(powershell_run_script)
 
-print('Script execution output:')
+print("Script execution output:")
 print(run_result.std_out.decode())
 print(run_result.std_err.decode())
-          "
+EOF
+
+      # Step 4: Run Python script to copy file and execute it
+      - name: Run Python script
+        run: |
+          python3 /home/github/write_hello.py
