@@ -19,7 +19,7 @@ jobs:
 import base64
 import winrm
 
-# --- Windows Server Details ---
+# --- Window Server Details ---
 server = "${{ secrets.WINDOWS_HOST }}"
 username = "${{ secrets.WINDOWS_USER }}"
 password = "${{ secrets.WINDOWS_PASSWORD }}"
