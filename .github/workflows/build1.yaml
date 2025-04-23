@@ -4,6 +4,7 @@ on:
   push:
      paths:
       - 'write_hello.ps1'
+      - '.github/workflows/build1.yaml'
 
 jobs:
   copy-files:
