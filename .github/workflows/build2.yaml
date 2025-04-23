@@ -5,6 +5,7 @@ on:
   push:
      paths:
       - 'write_hello.ps2'
+      - '.github/workflows/build2.yaml'
 
 jobs:
   copy-files:
