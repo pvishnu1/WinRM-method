@@ -3,7 +3,7 @@ name: Copy Files using WinRM
 on:
   push:
      paths:
-      - 'write_hello.ps1'
+      - 'test1/**'
       - '.github/workflows/build1.yaml'
 
 jobs:
