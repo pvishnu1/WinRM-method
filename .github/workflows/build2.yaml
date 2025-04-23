@@ -1,5 +1,5 @@
 
-name: Copy Files using WinRM
+name: Copy Files using Win RM
 
 on:
   push:
