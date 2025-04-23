@@ -20,7 +20,7 @@ jobs:
           WINDOWS_HOST: ${{ secrets.WINDOWS_HOST }}
           WINDOWS_USER: ${{ secrets.WINDOWS_USER }}
           WINDOWS_PASSWORD: ${{ secrets.WINDOWS_PASSWORD }}
-          LOCAL_SCRIPT_PATH2: write_hello.ps1
-          REMOTE_SCRIPT_PATH2: ${{ vars.REMOTE_SCRIPT_PATH2 }}
+          LOCAL_SCRIPT_PATH: ${{ vars.LOCAL_SCRIPT_PATH2 }}
+          REMOTE_SCRIPT_PATH: ${{ vars.REMOTE_SCRIPT_PATH2 }}
         run: |
           python3 write_hello.py
