@@ -3,8 +3,8 @@ name: Copy Files using WinRM
 
 on:
   push:
-    branches:
-      - main
+     paths:
+      - 'write_hello.ps2'
 
 jobs:
   copy-files:
