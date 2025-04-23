@@ -4,7 +4,7 @@ name: Copy Files using WinRM
 on:
   push:
      paths:
-      - 'write_hello.ps2'
+      - 'test2/**'
       - '.github/workflows/build2.yaml'
 
 jobs:
