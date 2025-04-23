@@ -1,4 +1,4 @@
-# write_hello.ps1
+# write_hello1.ps1
 
 $path = "C:\deploy\hello.txt"
 $content = "Hello from Github!"
