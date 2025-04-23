@@ -5,7 +5,7 @@ on:
      paths:
       - 'test1/**'
       - '.github/workflows/build1.yaml'
-
+      
 jobs:
   copy-files:
     runs-on: self-hosted
