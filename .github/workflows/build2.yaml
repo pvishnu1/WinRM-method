@@ -1,0 +1,25 @@
+
+name: Copy Files using WinRM
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  copy-files:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Run Python Script to Copy and Execute PowerShell on Windows
+        env:
+          WINDOWS_HOST: ${{ secrets.WINDOWS_HOST }}
+          WINDOWS_USER: ${{ secrets.WINDOWS_USER }}
+          WINDOWS_PASSWORD: ${{ secrets.WINDOWS_PASSWORD }}
+          LOCAL_SCRIPT_PATH2: write_hello.ps1
+          REMOTE_SCRIPT_PATH2: C:\\deploy\\write_hello.ps1
+        run: |
+          python3 write_hello.py
